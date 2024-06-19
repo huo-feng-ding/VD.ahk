@@ -12,6 +12,7 @@ numpad1::VD.goToDesktopNum(1)
 numpad2::VD.goToDesktopNum(2)
 numpad3::VD.goToDesktopNum(3)
 ```
+if you don't want VD switching animation, set `VD.animation_on:=false`
 
 * <kbd>Win + x</kbd> move VSCode to your current Desktop and WinActivate
 * <kbd>Win + e</kbd> move "explorer replacement program" to your current Desktop and WinActivate
@@ -55,12 +56,11 @@ create a hotkey to return you to the **previous desktop**
 #Include %A_LineFile%\..\VD.ahk
 VD.RegisterDesktopNotifications()
 VD.CurrentVirtualDesktopChanged:=Func("CurrentVirtualDesktopChanged")
-previous_desktopNum:=1
+VD.previous_desktopNum:=1
 CurrentVirtualDesktopChanged(desktopNum_Old, desktopNum_New) {
-  global previous_desktopNum
-  previous_desktopNum:=desktopNum_Old
+  VD.previous_desktopNum:=desktopNum_Old
 }
-Numpad0::VD.goToDesktopNum(previous_desktopNum)
+Numpad0::VD.goToDesktopNum(VD.previous_desktopNum)
 ```
 ___
 also has:
