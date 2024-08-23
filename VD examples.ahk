@@ -61,17 +61,7 @@ gui, show,, VD.ahk examples WinTitle
 
 ;include the library
 #Include %A_LineFile%\..\VD.ahk
-; or
-; #Include %A_LineFile%\..\_VD.ahk
-; ...{startup code}
-; VD.init()
 
-; VD.ahk : calls `VD.init()` on #Include
-; _VD.ahk : `VD.init()` when you want, like after a GUI has rendered, for startup performance reasons
-
-
-;you should WinHide invisible programs that have a window.
-WinHide, % "Malwarebytes Tray Application"
 ;#SETUP END
 
 VD.createUntil(3) ;create until we have at least 3 VD

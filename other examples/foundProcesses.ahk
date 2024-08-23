@@ -12,8 +12,7 @@ Process, Priority,, H
 SetWinDelay -1
 SetControlDelay -1
 
-#Include ..\_VD.ahk
-VD.init()
+#Include %A_LineFile%\..\..\VD.ahk
 
 foundProcessesArr := []
 
