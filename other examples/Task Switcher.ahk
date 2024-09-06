@@ -9,8 +9,7 @@ ListLines Off
 SetWinDelay, -1
 SetControlDelay, -1
 
-#Include %A_LineFile%\..\..\_VD.ahk
-VD.init()
+#Include %A_LineFile%\..\..\VD.ahk
 
 activeWindowTitle:=""
 MenuItemTitleLength:=100

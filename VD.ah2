@@ -1,5 +1,5 @@
 class VD {
-  static dummyStatic1 := this._init()
+  static dummyStatic1 := VD._init()
 
   static animation_on := true
   static _init() {
@@ -9,7 +9,7 @@ class VD {
     revisionNumber := splitByDot[4] + 0
     if (buildNumber < 20348) {
       IID_IVirtualDesktopManagerInternal_str := "{f31574d6-b682-4cdc-bd56-1827860abec6}"
-      IID_IVirtualDesktop_str := "{FF72FFDD-BE7E-43FC-9C03-AD81681E88E4}"
+      IID_IVirtualDesktop_str := "{ff72ffdd-be7e-43fc-9c03-ad81681e88e4}"
       this.IID_IVirtualDesktopNotification_n1 := 4671150449476842316
       this.IID_IVirtualDesktopNotification_n2 := 6512317045282349502
       idx_MoveViewToDesktop := 4
