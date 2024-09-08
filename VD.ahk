@@ -416,6 +416,10 @@ class VD {
             this.ptr_SetDesktopWallpaper := this._vtable(this.IVirtualDesktopManagerInternal, this.idx_SetDesktopWallpaper)
         }
 
+        this.ptr_IsAppIdPinned := this._vtable(this.IVirtualDesktopPinnedApps, 3) ;DllCall(ptr_IsAppIdPinned,"Ptr",IVirtualDesktopPinnedApps,"WStr",exe_path,"Int*",&appIsPinned:=0)
+        this.ptr_PinAppID := this._vtable(this.IVirtualDesktopPinnedApps, 4) ;DllCall(ptr_PinAppID,"Ptr",IVirtualDesktopPinnedApps,"WStr",exe_path)
+        this.ptr_UnpinAppID := this._vtable(this.IVirtualDesktopPinnedApps, 5) ;DllCall(ptr_UnpinAppID,"Ptr",IVirtualDesktopPinnedApps,"WStr",exe_path)
+
         this.ptr_IsViewPinned := this._vtable(this.IVirtualDesktopPinnedApps, 6) ;DllCall(ptr_IsViewPinned,"Ptr",IVirtualDesktopPinnedApps,"Ptr",IApplicationView,"Int*",&viewIsPinned:=0)
         this.ptr_PinView := this._vtable(this.IVirtualDesktopPinnedApps, 7) ;DllCall(ptr_PinView,"Ptr",IVirtualDesktopPinnedApps,"Ptr",IApplicationView)
         this.ptr_UnpinView := this._vtable(this.IVirtualDesktopPinnedApps, 8) ;DllCall(ptr_UnpinView,"Ptr",IVirtualDesktopPinnedApps,"Ptr",IApplicationView)
@@ -469,6 +473,17 @@ class VD {
     _dll_CreateDesktop_HMONITOR() {
         DllCall(this.ptr_CreateDesktop,"Ptr",this.IVirtualDesktopManagerInternal,"Ptr",0,"Ptr*",IVirtualDesktop_created:=0)
         return IVirtualDesktop_created
+    }
+
+    _dll_IsAppIdPinned(exe_path) {
+        DllCall(this.ptr_IsAppIdPinned,"Ptr",this.IVirtualDesktopPinnedApps,"WStr",exe_path,"Int*",appIsPinned:=0)
+        return appIsPinned
+    }
+    _dll_PinAppID(exe_path) {
+        DllCall(this.ptr_PinAppID,"Ptr",this.IVirtualDesktopPinnedApps,"WStr",exe_path)
+    }
+    _dll_UnpinAppID(exe_path) {
+        DllCall(this.ptr_UnpinAppID,"Ptr",this.IVirtualDesktopPinnedApps,"WStr",exe_path)
     }
 
     _dll_IsViewPinned(IApplicationView) {
@@ -765,6 +780,25 @@ class VD {
         this._dll_RemoveDesktop(IVirtualDesktop,IVirtualDesktop_fallback)
     }
 
+    IsExePinned(exe_path) {
+        appIsPinned:=this._dll_IsAppIdPinned(exe_path)
+        return appIsPinned
+    }
+    TogglePinExe(exe_path) {
+        appIsPinned:=this._dll_IsAppIdPinned(exe_path)
+        if (appIsPinned) {
+            this._dll_UnpinAppID(exe_path)
+        } else {
+            this._dll_PinAppID(exe_path)
+        }
+    }
+    PinExe(exe_path) {
+        this._dll_PinAppID(exe_path)
+    }
+    UnPinExe(exe_path) {
+        this._dll_UnpinAppID(exe_path)
+    }
+
     IsWindowPinned(wintitle) {
         found:=this._tryGetValidWindow(wintitle)
         if (!found) {
@@ -788,7 +822,6 @@ class VD {
         } else {
             this._dll_PinView(thePView)
         }
-
     }
     PinWindow(wintitle) {
         found:=this._tryGetValidWindow(wintitle)
