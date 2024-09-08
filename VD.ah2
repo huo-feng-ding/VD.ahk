@@ -1,6 +1,5 @@
 class VD {
   static dummyStatic1 := VD._init()
-
   static animation_on := true
   static _init() {
     OS_Version := FileGetVersion(A_WinDir "\System32\twinui.pcshell.dll")
@@ -306,6 +305,9 @@ class VD {
     if (this.idx_SetDesktopWallpaper > -1) {
       this.ptr_SetDesktopWallpaper := this._vtable(this.IVirtualDesktopManagerInternal.Ptr, this.idx_SetDesktopWallpaper)
     }
+    this.ptr_IsAppIdPinned := this._vtable(this.IVirtualDesktopPinnedApps.Ptr, 3)
+    this.ptr_PinAppID := this._vtable(this.IVirtualDesktopPinnedApps.Ptr, 4)
+    this.ptr_UnpinAppID := this._vtable(this.IVirtualDesktopPinnedApps.Ptr, 5)
     this.ptr_IsViewPinned := this._vtable(this.IVirtualDesktopPinnedApps.Ptr, 6)
     this.ptr_PinView := this._vtable(this.IVirtualDesktopPinnedApps.Ptr, 7)
     this.ptr_UnpinView := this._vtable(this.IVirtualDesktopPinnedApps.Ptr, 8)
@@ -349,6 +351,16 @@ class VD {
   static _dll_CreateDesktop_HMONITOR() {
     DllCall(this.ptr_CreateDesktop, "Ptr", this.IVirtualDesktopManagerInternal.Ptr, "Ptr", 0, "Ptr*", &IVirtualDesktop_created := 0)
     return IVirtualDesktop_created
+  }
+  static _dll_IsAppIdPinned(exe_path) {
+    DllCall(this.ptr_IsAppIdPinned, "Ptr", this.IVirtualDesktopPinnedApps.Ptr, "WStr", exe_path, "Int*", &appIsPinned := 0)
+    return appIsPinned
+  }
+  static _dll_PinAppID(exe_path) {
+    DllCall(this.ptr_PinAppID, "Ptr", this.IVirtualDesktopPinnedApps.Ptr, "WStr", exe_path)
+  }
+  static _dll_UnpinAppID(exe_path) {
+    DllCall(this.ptr_UnpinAppID, "Ptr", this.IVirtualDesktopPinnedApps.Ptr, "WStr", exe_path)
   }
   static _dll_IsViewPinned(IApplicationView) {
     DllCall(this.ptr_IsViewPinned, "Ptr", this.IVirtualDesktopPinnedApps.Ptr, "Ptr", IApplicationView, "Int*", &viewIsPinned := 0)
@@ -578,6 +590,24 @@ class VD {
     IVirtualDesktop := Desktops_Obj.GetAt(desktopNum)
     IVirtualDesktop_fallback := Desktops_Obj.GetAt(fallback_desktopNum)
     this._dll_RemoveDesktop(IVirtualDesktop, IVirtualDesktop_fallback)
+  }
+  static IsExePinned(exe_path) {
+    appIsPinned := this._dll_IsAppIdPinned(exe_path)
+    return appIsPinned
+  }
+  static TogglePinExe(exe_path) {
+    appIsPinned := this._dll_IsAppIdPinned(exe_path)
+    if (appIsPinned) {
+      this._dll_UnpinAppID(exe_path)
+    } else {
+      this._dll_PinAppID(exe_path)
+    }
+  }
+  static PinExe(exe_path) {
+    this._dll_PinAppID(exe_path)
+  }
+  static UnPinExe(exe_path) {
+    this._dll_UnpinAppID(exe_path)
   }
   static IsWindowPinned(wintitle) {
     found := this._tryGetValidWindow(wintitle)
