@@ -315,6 +315,10 @@ class VD {
     this.IID_IVirtualDesktop_ptr := DllCall("GlobalAlloc", "UInt", 0x00, "Uint", 16, "Ptr")
     DllCall("ole32\CLSIDFromString", "Str", IID_IVirtualDesktop_str, "Ptr", this.IID_IVirtualDesktop_ptr)
     this.savedLocalizedWord_Desktop := false
+    OnMessage(DllCall("RegisterWindowMessageW", "WStr", "TaskbarCreated", "Uint"), VD._ExplorerRestarted)
+  }
+  static _ExplorerRestarted(lParam, msg, hwnd) {
+    VD._init()
   }
   static _dll_MoveViewToDesktop_normal(IApplicationView, IVirtualDesktop) {
     DllCall(this.ptr_MoveViewToDesktop, "Ptr", this.IVirtualDesktopManagerInternal.Ptr, "Ptr", IApplicationView, "Ptr", IVirtualDesktop)
