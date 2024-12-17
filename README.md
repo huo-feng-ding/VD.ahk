@@ -68,7 +68,9 @@ also has:
 
 * rename desktop: `VD.setNameToDesktopNum("custom Desktop Name",desktopNum)`
 
-* `PinWindow()`
+* "Show this window on all desktops" corresponds to `VD.PinWindow(wintitle)`
+
+* "Show windows from this app on all desktops" corresponds to `VD.PinExe(exe_path)`
 
 - `getCount()` ;how many virtual desktops you now have
 - pretty much everything virtual desktop, or so I think!<br>
