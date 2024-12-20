@@ -384,12 +384,16 @@ class VD {
     return this._GetDesktops_Obj().GetCount()
   }
   static goToDesktopNum(desktopNum) {
-    firstWindowId := this._getFirstWindowInVD(desktopNum)
-    if (!firstWindowId) {
-      firstWindowId := WinExist("ahk_class Progman ahk_exe explorer.exe")
+    if (this._shouldActivateUponArrival()) {
+      firstWindowId := this._getFirstWindowInVD(desktopNum)
+      if (!firstWindowId) {
+        firstWindowId := WinExist("ahk_class Progman ahk_exe explorer.exe")
+      }
+    } else {
+      firstWindowId := 0
     }
     IVirtualDesktop := this._GetDesktops_Obj().GetAt(desktopNum)
-    if (VD.animation_on) {
+    if (VD.animation_on && firstWindowId) {
       if (this.idx_SwitchDesktopWithAnimation > -1) {
         DllCall(this.ptr_SwitchDesktopWithAnimation, "Ptr", this.IVirtualDesktopManagerInternal.Ptr, "Ptr", IVirtualDesktop)
         this._waitForCurrentDesktopArrived(desktopNum, firstWindowId)
@@ -409,6 +413,12 @@ class VD {
       this._dll_SwitchDesktop(IVirtualDesktop)
       this._waitForCurrentDesktopArrived(desktopNum, firstWindowId)
     }
+  }
+  static _shouldActivateUponArrival() {
+    if (WinActive("Task View ahk_exe explorer.exe")) {
+      return false
+    }
+    return true
   }
   static _waitForCurrentDesktopArrived(desktopNum, firstWindowId) {
     loop 20 {
