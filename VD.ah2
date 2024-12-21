@@ -382,8 +382,8 @@ class VD {
   static getCount() {
     return this._GetDesktops_Obj().GetCount()
   }
-  static goToDesktopNum(desktopNum) {
-    if (this._shouldActivateUponArrival()) {
+  static goToDesktopNum(desktopNum, shouldActivateUponArrival := true) {
+    if (shouldActivateUponArrival && this._shouldActivateUponArrival()) {
       firstWindowId := this._getFirstWindowInVD(desktopNum)
       if (!firstWindowId) {
         firstWindowId := WinExist("ahk_class Progman ahk_exe explorer.exe")
@@ -514,7 +514,7 @@ class VD {
     theHwnd := found[1]
     thePView := found[2]
     desktopNum_ofWindow := this._desktopNum_from_pView(thePView)
-    this.goToDesktopNum(desktopNum_ofWindow)
+    this.goToDesktopNum(desktopNum_ofWindow, !activateYourWindow)
     if (activateYourWindow) {
       WinActivate "ahk_id " theHwnd
     }
@@ -552,7 +552,7 @@ class VD {
       this.desktopNum := desktopNum
     }
     follow() {
-      VD.goToDesktopNum(this.desktopNum)
+      VD.goToDesktopNum(this.desktopNum, false)
       WinActivate "ahk_id " this.hwnd
     }
   }
