@@ -75,9 +75,9 @@ numpad2::VD.goToDesktopNum(2)
 numpad3::VD.goToDesktopNum(3)
 
 ;follow your window
-numpad4::VD.MoveWindowToDesktopNum("A",1), VD.goToDesktopNum(1)
-numpad5::VD.MoveWindowToDesktopNum("A",2), VD.goToDesktopNum(2)
-numpad6::VD.MoveWindowToDesktopNum("A",3), VD.goToDesktopNum(3)
+numpad4::VD.MoveWindowToDesktopNum("A",1).follow()
+numpad5::VD.MoveWindowToDesktopNum("A",2).follow()
+numpad6::VD.MoveWindowToDesktopNum("A",3).follow()
 
 ;just move window
 numpad7::VD.MoveWindowToDesktopNum("A",1)
@@ -89,9 +89,9 @@ numpad9::VD.MoveWindowToDesktopNum("A",3)
 ^+#right::VD.goToRelativeDesktopNum(+1)
 
 ; move window to left and follow it
-#!left::VD.goToDesktopNum(VD.MoveWindowToRelativeDesktopNum("A", -1))
+#!left::VD.MoveWindowToRelativeDesktopNum("A", -1).follow()
 ; move window to right and follow it
-#!right::VD.goToDesktopNum(VD.MoveWindowToRelativeDesktopNum("A", 1))
+#!right::VD.MoveWindowToRelativeDesktopNum("A", 1).follow()
 
 ;to come back to this window
 #NumpadMult::{ ;#*
