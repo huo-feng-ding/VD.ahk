@@ -315,7 +315,10 @@ class VD {
     this.ptr_GetViewForHwnd := this._vtable(this.IApplicationViewCollection.Ptr, 6)
     this.IID_IVirtualDesktop_ptr := DllCall("GlobalAlloc", "UInt", 0x00, "Uint", 16, "Ptr")
     DllCall("ole32\CLSIDFromString", "Str", IID_IVirtualDesktop_str, "Ptr", this.IID_IVirtualDesktop_ptr)
-    this.savedLocalizedWord_Desktop := false
+    OnMessage(DllCall("RegisterWindowMessageW", "WStr", "TaskbarCreated", "Uint"), VD._ExplorerRestarted)
+  }
+  static _ExplorerRestarted(lParam, msg, hwnd) {
+    VD._init()
   }
   static _dll_MoveViewToDesktop_normal(IApplicationView, IVirtualDesktop) {
     DllCall(this.ptr_MoveViewToDesktop, "Ptr", this.IVirtualDesktopManagerInternal.Ptr, "Ptr", IApplicationView, "Ptr", IVirtualDesktop)
@@ -380,13 +383,17 @@ class VD {
   static getCount() {
     return this._GetDesktops_Obj().GetCount()
   }
-  static goToDesktopNum(desktopNum) {
-    firstWindowId := this._getFirstWindowInVD(desktopNum)
-    if (!firstWindowId) {
-      firstWindowId := WinExist("ahk_class Progman ahk_exe explorer.exe")
+  static goToDesktopNum(desktopNum, shouldActivateUponArrival := true) {
+    if (shouldActivateUponArrival && this._shouldActivateUponArrival()) {
+      firstWindowId := this._getFirstWindowInVD(desktopNum)
+      if (!firstWindowId) {
+        firstWindowId := WinExist("ahk_class Progman ahk_exe explorer.exe")
+      }
+    } else {
+      firstWindowId := 0
     }
     IVirtualDesktop := this._GetDesktops_Obj().GetAt(desktopNum)
-    if (VD.animation_on) {
+    if (VD.animation_on && firstWindowId) {
       if (this.idx_SwitchDesktopWithAnimation > -1) {
         DllCall(this.ptr_SwitchDesktopWithAnimation, "Ptr", this.IVirtualDesktopManagerInternal.Ptr, "Ptr", IVirtualDesktop)
         this._waitForCurrentDesktopArrived(desktopNum, firstWindowId)
@@ -407,6 +414,12 @@ class VD {
       this._waitForCurrentDesktopArrived(desktopNum, firstWindowId)
     }
   }
+  static _shouldActivateUponArrival() {
+    if (WinActive(this._getLocalizedWord_TaskView() " ahk_exe explorer.exe")) {
+      return false
+    }
+    return true
+  }
   static _waitForCurrentDesktopArrived(desktopNum, firstWindowId) {
     loop 20 {
       if (this.getCurrentDesktopNum() == desktopNum) {
@@ -416,14 +429,25 @@ class VD {
       Sleep 25
     }
   }
-  static _getLocalizedWord_Desktop() {
-    if (this.savedLocalizedWord_Desktop) {
-      return this.savedLocalizedWord_Desktop
-    }
+  static _onceLocalizedWord_TaskView() {
+    hModule := (hModule := DllCall("GetModuleHandle", "Str", "twinui.pcshell.dll", "Ptr")) ? hModule : DllCall("LoadLibrary", "Str", "twinui.pcshell.dll", "Ptr")
+    length := DllCall("LoadString", "Uint", hModule, "Uint", 1512, "Ptr*", &lpBuffer := 0, "Int", 0)
+    savedLocalizedWord_TaskView := StrGet(lpBuffer, length, "UTF-16")
+    return savedLocalizedWord_TaskView
+  }
+  static _onceLocalizedWord_Desktop() {
     hModule := DllCall("GetModuleHandle", "Str", "shell32.dll", "Ptr")
     length := DllCall("LoadString", "Uint", hModule, "Uint", 21769, "Ptr*", &lpBuffer := 0, "Int", 0)
-    this.savedLocalizedWord_Desktop := StrGet(lpBuffer, length, "UTF-16")
-    return this.savedLocalizedWord_Desktop
+    savedLocalizedWord_Desktop := StrGet(lpBuffer, length, "UTF-16")
+    return savedLocalizedWord_Desktop
+  }
+  static _getLocalizedWord_TaskView() {
+    static savedLocalizedWord_TaskView := VD._onceLocalizedWord_TaskView()
+    return savedLocalizedWord_TaskView
+  }
+  static _getLocalizedWord_Desktop() {
+    static savedLocalizedWord_Desktop := VD._onceLocalizedWord_Desktop()
+    return savedLocalizedWord_Desktop
   }
   static getNameFromDesktopNum(desktopNum) {
     desktopName := ""
@@ -491,7 +515,7 @@ class VD {
     theHwnd := found[1]
     thePView := found[2]
     desktopNum_ofWindow := this._desktopNum_from_pView(thePView)
-    this.goToDesktopNum(desktopNum_ofWindow)
+    this.goToDesktopNum(desktopNum_ofWindow, !activateYourWindow)
     if (activateYourWindow) {
       WinActivate "ahk_id " theHwnd
     }
@@ -521,6 +545,17 @@ class VD {
       }
       this.SetForegroundWindow(firstWindowId)
     }
+    return this.WindowInfo(theHwnd, desktopNum)
+  }
+  class WindowInfo {
+    __New(hwnd, desktopNum) {
+      this.hwnd := hwnd
+      this.desktopNum := desktopNum
+    }
+    follow() {
+      VD.goToDesktopNum(this.desktopNum, false)
+      WinActivate "ahk_id " this.hwnd
+    }
   }
   static getRelativeDesktopNum(anchor_desktopNum, relative_count) {
     Desktops_Obj := this._GetDesktops_Obj()
@@ -535,8 +570,7 @@ class VD {
   static MoveWindowToRelativeDesktopNum(wintitle, relative_count) {
     desktopNum_ofWindow := this.getDesktopNumOfWindow(wintitle)
     absolute_desktopNum := this.getRelativeDesktopNum(desktopNum_ofWindow, relative_count)
-    this.MoveWindowToDesktopNum(wintitle, absolute_desktopNum)
-    return absolute_desktopNum
+    return this.MoveWindowToDesktopNum(wintitle, absolute_desktopNum)
   }
   static gotoRelativeDesktopNum(relative_count) {
     this.goToDesktopNum(this.getRelativeDesktopNum(this.getCurrentDesktopNum(), relative_count))
@@ -994,14 +1028,15 @@ class VD {
     return this.IObjectArray_Wrapper(IObjectArray, this.IID_IVirtualDesktop_ptr)
   }
   static _isValidWindow(hWnd, checkUpper := true) {
+    static GetWindowLong_Name := (A_PtrSize == 8) ? "GetWindowLongPtrW" : "GetWindowLongW"
     returnValue := [1, 0, 0]
     breakToReturnFalse:
     loop 1 {
-      dwStyle := DllCall("GetWindowLongPtrW", "Ptr", hWnd, "Int", -16, "Ptr")
+      dwStyle := DllCall(GetWindowLong_Name, "Ptr", hWnd, "Int", -16, "Ptr")
       if (!(dwStyle & 0x10000000)) {
         break breakToReturnFalse
       }
-      dwExStyle := DllCall("GetWindowLongPtrW", "Ptr", hWnd, "Int", -20, "Ptr")
+      dwExStyle := DllCall(GetWindowLong_Name, "Ptr", hWnd, "Int", -20, "Ptr")
       if (!(dwExStyle & 0x00040000)) {
         if (dwExStyle & 0x00000080 || dwExStyle & 0x08000000) {
           break breakToReturnFalse

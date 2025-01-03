@@ -27,9 +27,9 @@ if you don't want VD switching animation, set `VD.animation_on:=false`
 * <kbd>Numpad6</kbd> to move the active window to `Desktop 3`<br>
 * here, I choose to follow the window
 ```autohotkey
-numpad4::VD.MoveWindowToDesktopNum("A",1), VD.goToDesktopNum(1)
-numpad5::VD.MoveWindowToDesktopNum("A",2), VD.goToDesktopNum(2)
-numpad6::VD.MoveWindowToDesktopNum("A",3), VD.goToDesktopNum(3)
+numpad4::VD.MoveWindowToDesktopNum("A",1).follow()
+numpad5::VD.MoveWindowToDesktopNum("A",2).follow()
+numpad6::VD.MoveWindowToDesktopNum("A",3).follow()
 ```
 ```autohotkey
 numpad7::VD.MoveWindowToDesktopNum("A",1)
@@ -43,9 +43,9 @@ numpad9::VD.MoveWindowToDesktopNum("A",3)
 ^#right::VD.goToRelativeDesktopNum(+1)
 
 ; move window to left and follow it
-#!left::VD.goToDesktopNum(VD.MoveWindowToRelativeDesktopNum("A", -1))
+#!left::VD.MoveWindowToRelativeDesktopNum("A", -1).follow()
 ; move window to right and follow it
-#!right::VD.goToDesktopNum(VD.MoveWindowToRelativeDesktopNum("A", 1))
+#!right::VD.MoveWindowToRelativeDesktopNum("A", 1).follow()
 ```
 
 you can remap everything
@@ -68,7 +68,9 @@ also has:
 
 * rename desktop: `VD.setNameToDesktopNum("custom Desktop Name",desktopNum)`
 
-* `PinWindow()`
+* "Show this window on all desktops" corresponds to `VD.PinWindow(wintitle)`
+
+* "Show windows from this app on all desktops" corresponds to `VD.PinExe(exe_path)`
 
 - `getCount()` ;how many virtual desktops you now have
 - pretty much everything virtual desktop, or so I think!<br>
@@ -96,8 +98,6 @@ Loop %id%
 
 MsgBox % foundProcesses
 ```
-
-<!-- Desktop2`nPress Numpad6 to move the active window to Desktop3 and go to Desktop 3 (follow the window) -->
 
 ## cool fixes:<br>
 * Switching VD does not make icons (on the taskbar) flash<br>
